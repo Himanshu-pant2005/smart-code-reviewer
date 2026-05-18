@@ -7,8 +7,16 @@ app.use(express.json())
 // POST because we're sending data (the code) to the server
 app.post('/analyze', async (req, res) => {
     const { code } = req.body  // extract code from what React sends
-    const result = await analyzeCode(code)  // send to Gemini
-    res.send(result)  // send response back
+    if (!code){
+        return res.status(400).json({error: 'No code provided'})
+    }
+    try {
+        const result = await analyzeCode(code)  // send to Gemini
+        res.send(result)  // send response back to React
+    } catch(error){
+        console.error('Ai Error:',error.message)
+        res.status(500).json({error: 'Ai analysis failed,try again'})
+    }    
 })
 
 app.listen(5000, () =>{       // start the server, listen on port 5000
