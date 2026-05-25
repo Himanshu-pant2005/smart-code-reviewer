@@ -1,38 +1,247 @@
-.App {
-  text-align: center;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
+body {
+  background: #0f1117;
+  color: #e6e6e6;
+  font-family: 'Segoe UI', sans-serif;
   min-height: 100vh;
+}
+
+.App {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+h1 {
+  font-size: 2rem;
+  color: #a78bfa;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  color: #888;
+  margin-bottom: 30px;
+  font-size: 0.95rem;
+}
+
+/* ── Tabs ── */
+.tabs {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 32px;
+}
+
+.tab {
+  padding: 8px 28px;
+  border-radius: 8px;
+  border: 1px solid #333;
+  background: #1e1e2e;
+  color: #aaa;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: background 0.2s, color 0.2s;
+}
+
+.tab:hover {
+  background: #2a2a3e;
+  color: #e6e6e6;
+}
+
+.tab.active {
+  background: #7c3aed;
+  color: white;
+  border-color: #7c3aed;
+}
+
+/* ── Textarea & Button ── */
+textarea {
+  width: 100%;
+  background: #1e1e2e;
+  color: #e6e6e6;
+  border: 1px solid #333;
+  border-radius: 10px;
+  padding: 16px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  resize: vertical;
+  outline: none;
+}
+
+textarea:focus {
+  border-color: #a78bfa;
+}
+
+button {
+  margin-top: 16px;
+  padding: 12px 32px;
+  background: #7c3aed;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+button:hover {
+  background: #6d28d9;
+}
+
+button:disabled {
+  background: #444;
+  cursor: not-allowed;
+}
+
+/* ── Analysis Result Cards ── */
+.results {
+  margin-top: 40px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  gap: 24px;
 }
 
-.App-link {
-  color: #61dafb;
+.card {
+  background: #1e1e2e;
+  border: 1px solid #2a2a3e;
+  border-radius: 12px;
+  padding: 24px;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.card h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #2a2a3e;
 }
+
+.card.bugs h2         { color: #f87171; }
+.card.security h2     { color: #fbbf24; }
+.card.optimizations h2 { color: #a78bfa; }
+.card.improved h2     { color: #34d399; }
+
+.card p {
+  font-size: 0.9rem;
+  color: #ccc;
+  line-height: 1.6;
+  margin-bottom: 8px;
+  padding-left: 12px;
+  border-left: 3px solid #333;
+}
+
+.card pre {
+  background: #0f1117;
+  padding: 16px;
+  border-radius: 8px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  color: #a78bfa;
+  overflow-x: auto;
+  line-height: 1.6;
+}
+
+/* ── History Tab ── */
+.history {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.history-card {
+  background: #1e1e2e;
+  border: 1px solid #2a2a3e;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: left;
+}
+
+.history-meta {
+  color: #666;
+  font-size: 0.8rem;
+  margin-bottom: 12px;
+}
+
+.history-code {
+  background: #0f1117;
+  padding: 12px;
+  border-radius: 8px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.82rem;
+  overflow-x: auto;
+  max-height: 120px;
+  color: #a78bfa;
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.history-summary {
+  display: flex;
+  gap: 20px;
+  font-size: 0.82rem;
+  color: #666;
+}
+
+.history-expanded {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-top: 1px solid #2a2a3e;
+  padding-top: 16px;
+}
+
+.history-summary span:nth-child(1) { color: #f87171; }  /* bugs - red */
+.history-summary span:nth-child(2) { color: #fbbf24; }  /* security - yellow */
+.history-summary span:nth-child(3) { color: #a78bfa; }  /* optimizations - purple */
+
+.diff-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.diff-panel {
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #2a2a3e;
+}
+
+.diff-header {
+  padding: 10px 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.diff-header.original { background: #2a1a1a; color: #f87171; }
+.diff-header.improved { background: #1a2a1a; color: #34d399; }
+
+.diff-code {
+  padding: 16px;
+  background: #1e1e2e;
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  line-height: 1.7;
+  overflow-x: auto;
+  margin: 0;
+}
+
+.diff-removed {
+  background: rgba(248, 113, 113, 0.15);
+  color: #f87171;
+  display: block;
+}
+
+.diff-added {
+  background: rgba(52, 211, 153, 0.15);
+  color: #34d399;
+  display: block;
+}
+
+.diff-unchanged { color: #ccc; display: block; }

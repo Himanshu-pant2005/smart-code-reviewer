@@ -3,25 +3,29 @@ require('dotenv').config()
 const genAi = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
 const model = genAi.getGenerativeModel({model: 'gemini-2.5-flash'})
 
-const analyzeCode = async (code) => {       //async here means this is gonna take time to run dont wait
+const analyzeCode = async (code) => {
     const prompt = `
     You are a senior software engineer reviewing code.
-    Analyze the following code and return ONLY a JSON object, nothing else.
-    No explanation outside the JSON.
+    Analyze the following code and return ONLY a valid JSON object, nothing else.
+    No markdown, no backticks, no explanation outside the JSON.
 
     {
-        bugs:["bug1", "bug2"],
+        "bugs": ["bug1", "bug2"],
         "security": ["issue1", "issue2"],
-        "optimization": ["opt1", "opt2"],
-        "improved_code":"write the full improved code here"
+        "optimizations": ["opt1", "opt2"],
+        "improvedCode": "write the full improved code here"
     }
+
     Code to analyze:
     ${code}
     `
     const result = await model.generateContent(prompt)
-    const responce = result.response.text()
-    return responce
+    const text = result.response.text()
+
+    // Clean and parse here so the rest of the app always gets an object
+    const cleaned = text.replace(/```json|```/g, '').trim()
+    const parsed = JSON.parse(cleaned)
+    return parsed
 }
 
-module.exports = {analyzeCode}    
-//module.exports means export this variable we created so that others can use it
+module.exports = {analyzeCode}
