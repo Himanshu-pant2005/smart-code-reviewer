@@ -1,7 +1,9 @@
 const express = require('express');  // import the express library
-const {analyzeCode} = require('./services/gemini')  // importing
+const {analyzeCode} = require('./services/gemini')
+const cors = require('cors');  // import CORS middleware
 const app = express();  // create your server
-app.use(express.json())  
+app.use(cors());  // enable CORS for all routes
+app.use(express.json());  
 //this line allows server to read JSON that gets sent to it by react app, without it,server wont see the code
 
 // POST because we're sending data (the code) to the server
