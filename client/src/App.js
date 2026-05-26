@@ -55,6 +55,11 @@ function App() {
     if (t === 'history') fetchHistory()
   }
 
+  // check if detected language differs from selected
+  const hasMismatch = result &&
+    result.detectedLanguage &&
+    result.detectedLanguage.toLowerCase() !== language.toLowerCase()
+
   return (
     <div className="App">
       <nav className="navbar">
@@ -102,42 +107,44 @@ function App() {
 
           {result && (
             <div className="results">
+
+              {/* Language Mismatch Warning */}
+              {hasMismatch && (
+                <div className="language-warning">
+                  ⚠️ Language Mismatch: You selected <strong>{language}</strong> but
+                  the code appears to be <strong>{result.detectedLanguage}</strong>.
+                  Results may be inaccurate.
+                </div>
+              )}
+
               <div className="stats-row">
                 <div className="stat-badge bug-stat">🐛 {(result.bugs||[]).length} Bugs</div>
                 <div className="stat-badge sec-stat">🔒 {(result.security||[]).length} Security</div>
                 <div className="stat-badge opt-stat">⚡ {(result.optimizations||[]).length} Optimizations</div>
               </div>
 
-              {/* Language Mismatch Detection Handler conditional branch */}
-              {(result.bugs || []).some(b => b.toLowerCase().includes('mismatch') || b.toLowerCase().includes('framework')) ? (
-                <div className="card language-error-banner" style={{ borderLeft: '5px solid #ff4a4a', background: '#2a1b1b', padding: '15px', borderRadius: '8px', margin: '15px 0' }}>
-                  <h2 style={{ color: '#ff4a4a', margin: '0 0 10px 0' }}>⚠️ Critical Language Mismatch</h2>
-                  <p style={{ margin: 0, color: '#ffb3b3', lineHeight: '1.5' }}>
-                    {result.bugs.find(b => b.toLowerCase().includes('mismatch') || b.toLowerCase().includes('framework')) || result.improvedCode}
-                  </p>
-                </div>
-              ) : (
-                <>
-                  <DiffViewer originalCode={code} improvedCode={result.improvedCode} />
+              <DiffViewer originalCode={code} improvedCode={result.improvedCode} />
 
-                  <div className="card bugs">
-                    <h2>🐛 Bugs</h2>
-                    {(result.bugs||[]).length === 0 ? <p>No bugs found</p> : (result.bugs||[]).map((bug,i) => <p key={i}>{bug}</p>)}
-                  </div>
-                  <div className="card security">
-                    <h2>🔒 Security</h2>
-                    {(result.security||[]).length === 0 ? <p>No issues found</p> : (result.security||[]).map((s,i) => <p key={i}>{s}</p>)}
-                  </div>
-                  <div className="card optimizations">
-                    <h2>⚡ Optimizations</h2>
-                    {(result.optimizations||[]).map((o,i) => <p key={i}>{o}</p>)}
-                  </div>
-                  <div className="card improved">
-                    <h2>✨ Improved Code</h2>
-                    <pre>{result.improvedCode}</pre>
-                  </div>
-                </>
-              )}
+              <div className="card bugs">
+                <h2>🐛 Bugs</h2>
+                {(result.bugs||[]).length === 0
+                  ? <p>No bugs found</p>
+                  : (result.bugs||[]).map((bug,i) => <p key={i}>{bug}</p>)}
+              </div>
+              <div className="card security">
+                <h2>🔒 Security</h2>
+                {(result.security||[]).length === 0
+                  ? <p>No issues found</p>
+                  : (result.security||[]).map((s,i) => <p key={i}>{s}</p>)}
+              </div>
+              <div className="card optimizations">
+                <h2>⚡ Optimizations</h2>
+                {(result.optimizations||[]).map((o,i) => <p key={i}>{o}</p>)}
+              </div>
+              <div className="card improved">
+                <h2>✨ Improved Code</h2>
+                <pre>{result.improvedCode}</pre>
+              </div>
             </div>
           )}
         </div>
@@ -159,7 +166,9 @@ function App() {
                 <span>⚡ {(item.optimizations||[]).length} optimizations</span>
               </div>
               {expandedId === item._id && (
-                <div className="history-expanded" onClick={(e) => e.stopPropagation()} style={{cursor: 'default'}}>
+                <div className="history-expanded"
+                  onClick={(e) => e.stopPropagation()}
+                  style={{cursor:'default'}}>
                   <div className="card bugs">
                     <h2>🐛 Bugs</h2>
                     {(item.bugs||[]).length === 0 ? <p>No bugs found</p> : item.bugs.map((bug,i) => <p key={i}>{bug}</p>)}
