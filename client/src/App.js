@@ -10,17 +10,28 @@ function App() {
   const [history, setHistory] = useState([])
   const [historyLoading, setHistoryLoading] = useState(false)
   const [expandedId, setExpandedId] = useState(null)
-  const handleAnalyze = async () => {
+  const [language, setLanguage] = useState('Python')
+  const [analysisId, setAnalysisId] = useState(null)
+
+  const handleLanguageChange = (e) => {
+    setLanguage(e.target.value)
+    setCode('')
+    setResult(null)
+    setAnalysisId(null)
+  }
+
+  const handleAnalyze = async (isReanalyze = false) => {
     if (!code) return
     setLoading(true)
     try {
       const response = await fetch('/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code })
+        body: JSON.stringify({ code, isReanalyze, analysisId, language })
       })
       const parsed = await response.json()
       setResult(parsed)
+      if (parsed._id) setAnalysisId(parsed._id)
     } catch (err) {
       alert('Analysis failed, try again')
     }
@@ -46,116 +57,131 @@ function App() {
 
   return (
     <div className="App">
-      <h1>SmartCode Reviewer</h1>
-      <p className="subtitle">AI-Powered Code Analysis & Optimization Platform</p>
+      <nav className="navbar">
+        <div className="nav-logo">
+          <span className="logo-icon">⚡</span>
+          <span className="logo-text">SmartCode <span className="logo-accent">Reviewer</span></span>
+        </div>
+        <div className="nav-badge">AI Powered</div>
+      </nav>
 
-      {/* Tabs */}
       <div className="tabs">
-        <button
-          className={tab === 'analyze' ? 'tab active' : 'tab'}
-          onClick={() => handleTabSwitch('analyze')}
-        >
-          Analyze
-        </button>
-        <button
-          className={tab === 'history' ? 'tab active' : 'tab'}
-          onClick={() => handleTabSwitch('history')}
-        >
-          History
-        </button>
+        <button className={tab === 'analyze' ? 'tab active' : 'tab'} onClick={() => handleTabSwitch('analyze')}>Analyze</button>
+        <button className={tab === 'history' ? 'tab active' : 'tab'} onClick={() => handleTabSwitch('history')}>History</button>
       </div>
 
-      {/* Analyze Tab */}
       {tab === 'analyze' && (
         <div>
+          <div className="editor-header">
+            <select value={language} onChange={handleLanguageChange} className="lang-select">
+              <option>Python</option>
+              <option>JavaScript</option>
+              <option>C#</option>
+              <option>Java</option>
+              <option>C++</option>
+              <option>TypeScript</option>
+            </select>
+            <span className="editor-label">Code Editor</span>
+          </div>
           <textarea
             value={code}
             onChange={(e) => setCode(e.target.value)}
-            placeholder="Paste your code here..."
-            rows={10}
-            cols={60}
+            placeholder={`Paste your ${language} code here...`}
+            rows={12}
           />
-          <br/>
-          <button onClick={handleAnalyze} disabled={loading}>
-            {loading ? 'Analyzing...' : 'Analyze Code'}
-          </button>
+          <div className="btn-row">
+            <button onClick={() => handleAnalyze(false)} disabled={loading}>
+              {loading ? 'Analyzing...' : 'Analyze Code'}
+            </button>
+            {result && (
+              <button className="btn-reanalyze" onClick={() => handleAnalyze(true)} disabled={loading}>
+                🔄 Re-analyze
+              </button>
+            )}
+          </div>
 
           {result && (
             <div className="results">
-              <div className="card bugs">
-                <h2>🐛 Bugs</h2>
-                {(result.bugs || []).length === 0
-                  ? <p>No bugs found</p>
-                  : (result.bugs || []).map((bug, i) => <p key={i}>{bug}</p>)}
+              <div className="stats-row">
+                <div className="stat-badge bug-stat">🐛 {(result.bugs||[]).length} Bugs</div>
+                <div className="stat-badge sec-stat">🔒 {(result.security||[]).length} Security</div>
+                <div className="stat-badge opt-stat">⚡ {(result.optimizations||[]).length} Optimizations</div>
               </div>
-              <div className="card security">
-                <h2>🔒 Security</h2>
-                {(result.security || []).length === 0
-                  ? <p>No issues found</p>
-                  : (result.security || []).map((s, i) => <p key={i}>{s}</p>)}
-              </div>
-              <div className="card optimizations">
-                <h2>⚡ Optimizations</h2>
-                {(result.optimizations || []).map((o, i) => <p key={i}>{o}</p>)}
-              </div>
-              <div className="card improved">
-                <h2>✨ Improved Code</h2>
-                <pre>{result.improvedCode}</pre>
-              </div>
-              <DiffViewer 
-                originalCode={code} 
-                improvedCode={result.improvedCode} 
-              />
+
+              {/* Language Mismatch Detection Handler conditional branch */}
+              {(result.bugs || []).some(b => b.toLowerCase().includes('mismatch') || b.toLowerCase().includes('framework')) ? (
+                <div className="card language-error-banner" style={{ borderLeft: '5px solid #ff4a4a', background: '#2a1b1b', padding: '15px', borderRadius: '8px', margin: '15px 0' }}>
+                  <h2 style={{ color: '#ff4a4a', margin: '0 0 10px 0' }}>⚠️ Critical Language Mismatch</h2>
+                  <p style={{ margin: 0, color: '#ffb3b3', lineHeight: '1.5' }}>
+                    {result.bugs.find(b => b.toLowerCase().includes('mismatch') || b.toLowerCase().includes('framework')) || result.improvedCode}
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <DiffViewer originalCode={code} improvedCode={result.improvedCode} />
+
+                  <div className="card bugs">
+                    <h2>🐛 Bugs</h2>
+                    {(result.bugs||[]).length === 0 ? <p>No bugs found</p> : (result.bugs||[]).map((bug,i) => <p key={i}>{bug}</p>)}
+                  </div>
+                  <div className="card security">
+                    <h2>🔒 Security</h2>
+                    {(result.security||[]).length === 0 ? <p>No issues found</p> : (result.security||[]).map((s,i) => <p key={i}>{s}</p>)}
+                  </div>
+                  <div className="card optimizations">
+                    <h2>⚡ Optimizations</h2>
+                    {(result.optimizations||[]).map((o,i) => <p key={i}>{o}</p>)}
+                  </div>
+                  <div className="card improved">
+                    <h2>✨ Improved Code</h2>
+                    <pre>{result.improvedCode}</pre>
+                  </div>
+                </>
+              )}
             </div>
           )}
         </div>
       )}
 
-      {/* History Tab */}
       {tab === 'history' && (
         <div className="history">
           {historyLoading && <p>Loading history...</p>}
           {!historyLoading && history.length === 0 && <p>No analyses yet.</p>}
           {history.map((item) => (
-  <div key={item._id} className="history-card"
-       onClick={() => setExpandedId(expandedId === item._id ? null : item._id)}
-       style={{cursor: 'pointer'}}>
-    
-    <div className="history-meta">
-      🕒 {new Date(item.createdAt).toLocaleString()}
-    </div>
-    <pre className="history-code">{item.originalCode}</pre>
-    <div className="history-summary">
-      <span>🐛 {item.bugs.length} bugs</span>
-      <span>🔒 {item.security.length} security issues</span>
-      <span>⚡ {item.optimizations.length} optimizations</span>
-    </div>
-
-    {expandedId === item._id && (
-      <div className="history-expanded">
-        <div className="card bugs">
-          <h2>🐛 Bugs</h2>
-          {item.bugs.length === 0 ? <p>No bugs found</p> : item.bugs.map((bug, i) => <p key={i}>{bug}</p>)}
-        </div>
-        <div className="card security">
-          <h2>🔒 Security</h2>
-          {item.security.length === 0 ? <p>No issues found</p> : item.security.map((s, i) => <p key={i}>{s}</p>)}
-        </div>
-        <div className="card optimizations">
-          <h2>⚡ Optimizations</h2>
-          {item.optimizations.map((o, i) => <p key={i}>{o}</p>)}
-        </div>
-        <div className="card improved">
-          <h2>✨ Improved Code</h2>
-          <pre>{item.improvedCode}</pre>
-        </div>
-      </div>
-    )}
-  </div>
-))}
+            <div key={item._id} className="history-card"
+              onClick={() => setExpandedId(expandedId === item._id ? null : item._id)}
+              style={{cursor:'pointer'}}>
+              <div className="history-meta">🕒 {new Date(item.createdAt).toLocaleString()}</div>
+              <pre className="history-code">{item.originalCode}</pre>
+              <div className="history-summary">
+                <span>🐛 {(item.bugs||[]).length} bugs</span>
+                <span>🔒 {(item.security||[]).length} security issues</span>
+                <span>⚡ {(item.optimizations||[]).length} optimizations</span>
+              </div>
+              {expandedId === item._id && (
+                <div className="history-expanded" onClick={(e) => e.stopPropagation()} style={{cursor: 'default'}}>
+                  <div className="card bugs">
+                    <h2>🐛 Bugs</h2>
+                    {(item.bugs||[]).length === 0 ? <p>No bugs found</p> : item.bugs.map((bug,i) => <p key={i}>{bug}</p>)}
+                  </div>
+                  <div className="card security">
+                    <h2>🔒 Security</h2>
+                    {(item.security||[]).length === 0 ? <p>No issues found</p> : item.security.map((s,i) => <p key={i}>{s}</p>)}
+                  </div>
+                  <div className="card optimizations">
+                    <h2>⚡ Optimizations</h2>
+                    {(item.optimizations||[]).map((o,i) => <p key={i}>{o}</p>)}
+                  </div>
+                  <div className="card improved">
+                    <h2>✨ Improved Code</h2>
+                    <pre>{item.improvedCode}</pre>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       )}
-
     </div>
   )
 }

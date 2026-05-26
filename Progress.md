@@ -2,15 +2,20 @@
 
 ### Completed
 - Express server setup
-- Gemini 2.5-flash AI integration
+- Gemini 2.5-flash AI integration (strict prompt)
 - Structured JSON response parsing
 - React frontend connected to backend
-- Clean dark theme UI
+- Clean dark theme UI (JetBrains Mono / Fira Code fonts)
 - MongoDB history (save + fetch)
-- History tab in frontend
+- History tab with accordion drawer toggling
+- Event bubbling fix (stopPropagation on expanded cards)
+- Side-by-side diff viewer (DiffViewer component)
+- Language selection with cross-verification
+- Language mismatch detection (short-circuits to error banner, hides diff/cards)
+- Color-coded border-left indicators (red/yellow/purple per card type)
+- Button active scale animations + focus ring on editor
 
 ### Next Steps
-- Side-by-side code comparison (diff viewer)
 - AI Chat feature
 
 ### Tech Stack
@@ -21,7 +26,8 @@
 
 ### Key Files
 - server/index.js - main server + history endpoint
-- server/services/gemini.js - AI logic (parses JSON)
+- server/services/gemini.js - AI logic (strict prompt + JSON parse)
 - server/models/Analysis.js - Mongoose schema
 - server/config/db.js - MongoDB connection
-- client/src/App.js - main frontend with tabs
+- client/src/App.js - main frontend (tabs, diff viewer, mismatch banner)
+- client/src/App.css - dark theme + animations

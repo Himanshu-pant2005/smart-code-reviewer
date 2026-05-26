@@ -10,34 +10,49 @@ app.use(cors());
 app.use(express.json());  
 
 app.post('/analyze', async (req, res) => {
-    const { code } = req.body
-    if (!code){
-        return res.status(400).json({error: 'No code provided'})
+  // Destructured the incoming language payload parameter
+  const { code, isReanalyze, analysisId, language } = req.body
+  if (!code) return res.status(400).json({ error: 'No code provided' })
+
+  try {
+    // Pass both parameters down into our service layer framework execution hook
+    const result = await analyzeCode(code, language || 'Python')
+
+    let analysis
+    if (isReanalyze && analysisId) {
+      analysis = await Analysis.findByIdAndUpdate(
+        analysisId,
+        {
+          originalCode: code,
+          bugs: result.bugs || [],
+          security: result.security || [],
+          optimizations: result.optimizations || [],
+          improvedCode: result.improvedCode || ''
+        },
+        { new: true }
+      )
+    } else {
+      analysis = new Analysis({
+        originalCode: code,
+        bugs: result.bugs || [],
+        security: result.security || [],
+        optimizations: result.optimizations || [],
+        improvedCode: result.improvedCode || ''
+      })
+      await analysis.save()
     }
-    try {
-        const result = await analyzeCode(code)  // now returns a JS object
 
-        const analysis = new Analysis({
-            originalCode: code,
-            bugs: result.bugs || [],
-            security: result.security || [],
-            optimizations: result.optimizations || [],
-            improvedCode: result.improvedCode || ''
-        })
-        await analysis.save()
-        console.log('Analysis saved to MongoDB ✓')
-
-        res.json(result)  // send as JSON, not text
-    } catch(error){
-        console.error('Ai Error:',error.message)
-        res.status(500).json({error: 'Ai analysis failed,try again'})
-    }    
+    console.log('Analysis saved to MongoDB ✓')
+    res.json({ ...result, _id: analysis._id })
+  } catch (error) {
+    console.error('AI Error:', error.message)
+    res.status(500).json({ error: 'AI analysis failed, try again' })
+  }
 })
 
-// GET all past analyses
 app.get('/history', async (req, res) => {
     try {
-        const history = await Analysis.find().sort({ createdAt: -1 })  // newest first
+        const history = await Analysis.find().sort({ createdAt: -1 })
         res.json(history)
     } catch(error){
         console.error('History fetch error:', error.message)
