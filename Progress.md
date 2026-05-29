@@ -2,7 +2,7 @@
 
 ### Completed
 - Express server setup
-- Gemini 2.5-flash AI integration (strict prompt)
+- change to Groq (llama-3.3-70b)
 - Structured JSON response parsing
 - React frontend connected to backend
 - Clean dark theme UI (JetBrains Mono / Fira Code fonts)
